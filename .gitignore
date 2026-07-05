@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# uv (keep uv.lock for reproducibility)
+# uv.lock
+
+# Project artifacts
+output/
+scripts/state.json
+
+# Input media (keep .gitkeep only)
+input/*.wav
+input/*.mp3
+input/*.m4a
+input/*.flac
+input/*.mp4
+input/*.mov
+input/*.mkv
+input/*.xlsx
+!input/.gitkeep
+
+# Legacy conda env (removed in v2.0)
+conda/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
