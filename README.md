@@ -97,28 +97,36 @@ You: "@whisper-pipeline run the transcribe step"
 
 ## Install (one-time)
 
+### Linux
 ```bash
-# Create conda environment with all dependencies
+./install.sh
+```
+
+### Windows
+```batch
 install.bat
 ```
 
-This creates a Conda environment with:
-- Python 3.10
-- PyTorch 2.2.0 with CUDA 12.1
-- faster-whisper (WhisperX fork with phoneme alignment)
+Both installers run `uv sync` to create a `.venv` with all dependencies:
+- Python 3.10+
+- PyTorch 2.5.1 with CUDA 12.4
+- faster-whisper (CTranslate2-based, NOT raw PyTorch Whisper)
 - All Python dependencies via `uv`
 
 ### Quick CLI (without OpenCode)
 
 ```bash
-# Interactive transcription
+# Linux
+./start-uv.sh
+
+# Windows
+start-uv.bat
+
+# Or run stages manually
 uv run python scripts/run_stage.py ingest
 uv run python scripts/run_stage.py transcribe
 uv run python scripts/run_stage.py align
 uv run python scripts/run_stage.py render
-
-# Or use the old all-in-one script
-start-uv.bat
 ```
 
 ---
@@ -195,6 +203,17 @@ Run `install.bat` again to recreate the environment.
 ### "NVIDIA GPU not detected"
 - Install latest NVIDIA drivers (525+)
 - Verify with `nvidia-smi`
+
+### "HuggingFace hub error: Unknown scheme for proxy URL"
+`install.sh` automatically unsets `all_proxy` if it starts with `socks://` (httpx cannot handle SOCKS schemes). If you see this error, verify with:
+```bash
+env | grep -i proxy
+```
+The workaround is to unset the SOCKS proxy before running:
+```bash
+unset all_proxy ALL_PROXY
+./install.sh
+```
 
 ### Audio gap detection
 The align stage detects silence between words to create natural cut points:
