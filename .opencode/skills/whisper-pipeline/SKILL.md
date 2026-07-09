@@ -1,6 +1,6 @@
 ---
 name: whisper-pipeline
-description: Use when the user wants to transcribe audio/video and generate retention-optimized SRT subtitles with shot segmentation. Runs pipeline stages (ingest, transcribe, acoustic, segment, render) via scripts/run_stage.py with optional LLM boundary gate. Use ONLY for transcription/subtitle/SRT tasks.
+description: Use when the user wants to transcribe audio/video and generate SRT subtitles with shot-aligned timestamps. Runs pipeline stages (ingest, transcribe, align, render) via scripts/run_stage.py.
 version: 2.0.0
 author: Whisper-Tools
 ---
@@ -14,23 +14,20 @@ OpenCode manages the pipeline stage-by-stage. Each stage is a standalone CLI scr
 ```
 OpenCode                      Python CLI
 ───────                       ─────────
-1. Decide: run ingest ──────▶ python scripts/run_stage.py ingest
-   Inspect: found shotlist?           │
-   ↓                                  │
-2. Run transcribe  ───────────▶ python scripts/run_stage.py transcribe
-   Inspect: word count, lang          │
-   ↓                                  │
-3. Run acoustic    ───────────▶ python scripts/run_stage.py acoustic
-   Inspect: features extracted?       │
-   ↓                                  │
-4. Decide: segment mode ──────▶ python scripts/run_stage.py segment [--llm]
-   Inspect: shot counts, sections     │
-   ↓                                  │
-5. Run render      ───────────▶ python scripts/run_stage.py render
-   Inspect: file paths, stats         │
-   ↓                                  │
-6. Report to user              output/subtitles/edit.srt
-                                       output/subtitles/{name}_shots.json
+1. Run ingest  ─────────────▶ uv run python scripts/run_stage.py ingest
+   Inspect: audio_path, scene_count
+   ↓
+2. Run transcribe ──────────▶ uv run python scripts/run_stage.py transcribe
+   Inspect: word_count, language, confidence
+   ↓
+3. Run align ───────────────▶ uv run python scripts/run_stage.py align
+   Inspect: chunks_per_scene, empty_scenes, avg_chunk_duration
+   ↓
+4. Run render ──────────────▶ uv run python scripts/run_stage.py render
+   Inspect: file paths, total_chunks, stats
+   ↓
+5. Report to user             output/subtitles/edit.srt
+                              output/subtitles/{name}_chunks.json
 ```
 
 ## How OpenCode orchestrates
@@ -43,107 +40,92 @@ Each stage call returns:
 OpenCode **reads the data** and makes decisions:
 
 ### After ingest
-- If `data.shotlist` is not null → shotlist mode is active for segment
-- If `data.shotlist` is null → auto-detect (Hook/Main/CTA)
+- If `data.scene_count > 0` → shotlist loaded, scenes ready for alignment
+- Read `data.audio_path` to confirm which file
 
 ### After transcribe
-- Check `data.word_count`. If 0, abort — transcription failed.
-- Note `data.language` and `data.confidence` for user report.
+- If `data.word_count == 0`, abort — no speech detected
+- Note `data.language` and `data.confidence` for user report
 
-### After acoustic
-- If `data.features is null` → segment will use text-only rules (less precise)
-- If `data.features` has frames → acoustic scoring active
-
-### Before segment
-- OpenCode decides: pass `--llm` flag?
-  - Check `config.py`: if `LLM_PROVIDER` is not `"none"`, pass `--llm`
-  - LLM gate only fires for low-confidence cuts (score < `LLM_AMBIGUITY_THRESHOLD`)
-
-### After segment
-- Inspect `data.sections` dict. Expected: HOOK, MAIN, CTA (or SHOTLIST)
-- If any section has 0 shots, warn user.
-- If total_shots is very low (< 3), suggest reconfiguring.
+### After align
+- `data.chunks_per_scene` shows subtitle distribution
+- If any scene has 0 chunks, warn user
+- `data.avg_chunk_duration` should be 2-5s for readability
 
 ### After render
-- `data.srt` and `data.json` are the output file paths
-- `data.stats` has per-section duration breakdown
+- `data.srt_path` — SRT file location
+- `data.json_path` — JSON metadata location
+- `data.total_chunks` and `data.stats` — per-scene duration breakdown
 
 ### Error recovery
-- If a stage returns `{"status": "fail", "message": "..."}`, OpenCode retries once, then reports to user with fix suggestions.
-- Common failures and remedies:
-  - `No audio_path in state` → user skipped ingest, run it first
+- If a stage returns `{"status": "fail", "message": "..."}`, retry once, then report to user with fix suggestions
+- Common failures:
+  - `No audio_path in state` → run ingest first
   - `No words in state` → transcribe failed (CUDA OOM? try int8)
-  - `No shots in state` → segment failed (check config thresholds)
+  - `No chunks in state` → align failed (check scene data)
 
 ## Running a single stage
 
 ```bash
-python scripts/run_stage.py ingest
-python scripts/run_stage.py transcribe
-python scripts/run_stage.py acoustic
-python scripts/run_stage.py segment          # rule-only
-python scripts/run_stage.py segment --llm     # with LLM gate
-python scripts/run_stage.py render
+uv run python scripts/run_stage.py ingest
+uv run python scripts/run_stage.py transcribe
+uv run python scripts/run_stage.py align
+uv run python scripts/run_stage.py render
 ```
 
 ## State file
 
 Stages share state via `scripts/state.json` (auto-created, auto-read).
-OpenCode can also read state.json directly for inspection.
 
-```
-scripts/state.json:
+```json
 {
-  "audio_path": "input/my_voice.wav",
-  "use_shotlist": false,
-  "shotlist_rows": [],
-  "words": [{"text": "...", "start": 0.0, "end": 1.2}, ...],
-  "features": {"f0": [...], "times": [...], "rms": [...], "centroid": [...]},
-  "hook_end_idx": 42,
-  "main_end_idx": 150,
-  "shots": [{"text": "...", "section": "HOOK", ...}, ...]
+  "audio_path": "input/my_audio.wav",
+  "scenes": [{"scene": 1, "start": 0.0, "end": 12.5, "text": "..."}],
+  "words": [{"text": "hello", "start": 0.0, "end": 0.5}],
+  "chunks": [{"text": "...", "start": 0.0, "end": 4.2, "scene": 1}]
 }
 ```
 
 ## Configuration
 
-All settings in `scripts/config.py`. Key ones OpenCode should know:
+All settings in `scripts/config.py`:
 
 | Setting | Effect | Default |
 |---------|--------|---------|
-| `WHISPER_MODEL` | Model size (large-v3-turbo / medium / small) | large-v3-turbo |
-| `SHOTLIST_ALIGN` | Use xlsx shotlist | True |
-| `LLM_PROVIDER` | "none" / "openai" / "anthropic" / "ollama" | none |
-| `LLM_API_KEY` | API key for provider | "" |
-| `LLM_AMBIGUITY_THRESHOLD` | Score below which LLM reviews cut | 100 |
+| `WHISPER_MODEL` | Model size | large-v3-turbo |
+| `COMPUTE_TYPE` | int8 / float16 | int8 |
+| `DEVICE` | cuda / cpu | cuda |
+| `MAX_CHUNK_DURATION` | Max subtitle duration | 7.0s |
+| `MAX_CHUNK_CHARS` | Max subtitle width | 84 chars |
 
 ## Output files
 
 | File | Content |
 |------|---------|
-| `output/subtitles/edit.srt` | SRT subtitles with retention-optimized shot timings |
-| `output/subtitles/{name}_shots.json` | Per-shot metadata with text, timestamps, score, reasons, AI image prompts |
+| `output/subtitles/edit.srt` | SRT subtitles with shot-timed chunks |
+| `output/subtitles/{name}_chunks.json` | Per-chunk metadata with text, timestamps, scene |
 
 ## Files in repo
 
 ```
 Whisper-Tools/
 ├── .opencode/
-│   ├── skills/
-│   │   ├── whisper/              # Original whisper reference skill
-│   │   └── whisper-scripts/     # Pipeline orchestration skill (this one)
-│   └── agents/
-│       └── whisper-pipeline.md
+│   ├── agent/
+│   │   ├── orch.md              # Orchestrator (primary)
+│   │   └── whisper-pipeline.md  # Pipeline runner (subagent)
+│   ├── pipelines/
+│   │   └── whisper-tools/
+│   │       └── OPENCODE.md      # Pipeline stage definition
+│   └── skills/
+│       └── whisper-pipeline/    # This skill
 ├── scripts/
-│   ├── run_stage.py         # CLI entry point (called by OpenCode via bash)
-│   ├── stage_ingest.py      # media discovery + shotlist
+│   ├── run_stage.py         # CLI entry point (called by OpenCode)
+│   ├── stage_ingest.py      # Media discovery + shotlist
 │   ├── stage_transcribe.py  # faster-whisper
-│   ├── stage_acoustic.py    # librosa features
-│   ├── stage_segment.py     # rule + LLM shot detection
+│   ├── stage_align.py       # Word-to-scene alignment + chunking
 │   ├── stage_render.py      # SRT + JSON output
-│   └── state.json           # auto-generated inter-stage state
-├── scripts/
-│   ├── config.py            # all settings
-│   └── transcribe_srt.py    # legacy entry point
-└── input/                   # place media here
+│   ├── config.py            # All settings
+│   └── state.json           # Auto-generated inter-stage state
+├── input/                   # Place media here
+└── output/subtitles/        # Generated SRT + JSON
 ```

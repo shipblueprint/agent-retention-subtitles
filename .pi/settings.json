@@ -1,0 +1,9 @@
+{
+  "skills": {
+    "paths": []
+  },
+  "prompts": {
+    "dir": ".pi/prompts"
+  },
+  "default_prompt": "pipeline"
+}
