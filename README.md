@@ -1,3 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) ![GitHub release](https://img.shields.io/github/v/release/shipblueprint/agent-whisper-tools)
+
 # Whisper-Tools
 
 **Automatic transcription and SRT subtitle generation** using faster-whisper. Transcribes audio/video and produces retention-optimized subtitles with shotlist-aligned scene chunking.
