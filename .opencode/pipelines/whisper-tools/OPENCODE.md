@@ -10,28 +10,28 @@ Automatic transcription and SRT subtitle generation using faster-whisper with sh
 Resolve audio file and load shotlist CSV (scene boundaries from toolstack-pipeline).
 
 ```bash
-uv run python scripts/run_stage.py ingest [--audio path] [--shotlist path]
+scripts/transcribe.sh ingest [--audio path] [--shotlist path]
 ```
 
 ### Stage 2: Transcribe
 Run faster-whisper with word-level timestamps. GPU (CUDA) with int8 fallback.
 
 ```bash
-uv run python scripts/run_stage.py transcribe [--language en]
+scripts/transcribe.sh transcribe [--language en]
 ```
 
 ### Stage 3: Align
 Map transcribed words to scenes and split long scenes into readable subtitle chunks (1-7s, ~80 chars) at natural break points.
 
 ```bash
-uv run python scripts/run_stage.py align
+scripts/transcribe.sh align
 ```
 
 ### Stage 4: Render
 Write SRT subtitles and JSON chunk metadata to `output/subtitles/`.
 
 ```bash
-uv run python scripts/run_stage.py render
+scripts/transcribe.sh render
 ```
 
 ## State

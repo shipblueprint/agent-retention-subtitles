@@ -14,16 +14,16 @@ OpenCode manages the pipeline stage-by-stage. Each stage is a standalone CLI scr
 ```
 OpenCode                      Python CLI
 ───────                       ─────────
-1. Run ingest  ─────────────▶ uv run python scripts/run_stage.py ingest
+1. Run ingest  ─────────────▶ scripts/transcribe.sh ingest
    Inspect: audio_path, scene_count
    ↓
-2. Run transcribe ──────────▶ uv run python scripts/run_stage.py transcribe
+2. Run transcribe ──────────▶ scripts/transcribe.sh transcribe
    Inspect: word_count, language, confidence
    ↓
-3. Run align ───────────────▶ uv run python scripts/run_stage.py align
+3. Run align ───────────────▶ scripts/transcribe.sh align
    Inspect: chunks_per_scene, empty_scenes, avg_chunk_duration
    ↓
-4. Run render ──────────────▶ uv run python scripts/run_stage.py render
+4. Run render ──────────────▶ scripts/transcribe.sh render
    Inspect: file paths, total_chunks, stats
    ↓
 5. Report to user             output/subtitles/edit.srt
@@ -67,10 +67,10 @@ OpenCode **reads the data** and makes decisions:
 ## Running a single stage
 
 ```bash
-uv run python scripts/run_stage.py ingest
-uv run python scripts/run_stage.py transcribe
-uv run python scripts/run_stage.py align
-uv run python scripts/run_stage.py render
+scripts/transcribe.sh ingest
+scripts/transcribe.sh transcribe
+scripts/transcribe.sh align
+scripts/transcribe.sh render
 ```
 
 ## State file

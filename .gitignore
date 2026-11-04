@@ -38,3 +38,6 @@ Thumbs.db
 .codegraph/
 .omo/
 .headroom/
+
+# STT engine (user links manually)
+scripts/stt-transcribe

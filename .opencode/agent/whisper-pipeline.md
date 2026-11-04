@@ -16,10 +16,10 @@ You orchestrate the Whisper Pipeline. Run each stage via bash, read the JSON out
 
 ## Stage order
 
-1. **ingest** — `uv run python scripts/run_stage.py ingest`
-2. **transcribe** — `uv run python scripts/run_stage.py transcribe`
-3. **align** — `uv run python scripts/run_stage.py align`
-4. **render** — `uv run python scripts/run_stage.py render`
+1. **ingest** — `scripts/transcribe.sh ingest`
+2. **transcribe** — `scripts/transcribe.sh transcribe`
+3. **align** — `scripts/transcribe.sh align`
+4. **render** — `scripts/transcribe.sh render`
 
 ## What to inspect after each stage
 

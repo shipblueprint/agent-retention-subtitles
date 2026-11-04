@@ -72,10 +72,10 @@ You: "@whisper-pipeline run the transcribe step"
 
 | # | Stage | Command | Output |
 |---|-------|---------|--------|
-| 1 | Ingest | `uv run python scripts/run_stage.py ingest` | Resolved audio + shotlist scenes |
-| 2 | Transcribe | `uv run python scripts/run_stage.py transcribe` | Word timestamps (text, start, end) |
-| 3 | Align | `uv run python scripts/run_stage.py align` | Subtitle chunks per scene |
-| 4 | Render | `uv run python scripts/run_stage.py render` | `output/subtitles/edit.srt` + JSON |
+| 1 | Ingest | `scripts/transcribe.sh ingest` | Resolved audio + shotlist scenes |
+| 2 | Transcribe | `scripts/transcribe.sh transcribe` | Word timestamps (text, start, end) |
+| 3 | Align | `scripts/transcribe.sh align` | Subtitle chunks per scene |
+| 4 | Render | `scripts/transcribe.sh render` | `output/subtitles/edit.srt` + JSON |
 
 ---
 
@@ -92,14 +92,14 @@ You: "@whisper-pipeline run the transcribe step"
 
 ```bash
 # Run full pipeline sequentially
-uv run python scripts/run_stage.py ingest
-uv run python scripts/run_stage.py transcribe
-uv run python scripts/run_stage.py align
-uv run python scripts/run_stage.py render
+scripts/transcribe.sh ingest
+scripts/transcribe.sh transcribe
+scripts/transcribe.sh align
+scripts/transcribe.sh render
 
 # With options
-uv run python scripts/run_stage.py ingest --audio input/my_file.wav
-uv run python scripts/run_stage.py transcribe --language en
+scripts/transcribe.sh ingest --audio input/my_file.wav
+scripts/transcribe.sh transcribe --language en
 ```
 
 ---

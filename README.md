@@ -88,45 +88,41 @@ You: "@whisper-pipeline run the transcribe step"
 
 | Stage | What it does | Command |
 |-------|-------------|---------|
-| **Ingest** | Resolve audio file + load shotlist CSV (scene boundaries) | `uv run python scripts/run_stage.py ingest` |
-| **Transcribe** | Run faster-whisper with word-level timestamps | `uv run python scripts/run_stage.py transcribe` |
-| **Align** | Map words to scenes, split into subtitle chunks (1-7s, ~80 chars) | `uv run python scripts/run_stage.py align` |
-| **Render** | Write `edit.srt` and `{name}_chunks.json` | `uv run python scripts/run_stage.py render` |
+| **Ingest** | Resolve audio file + load shotlist CSV (scene boundaries) | `scripts/transcribe.sh ingest` |
+| **Transcribe** | Run faster-whisper with word-level timestamps | `scripts/transcribe.sh transcribe` |
+| **Align** | Map words to scenes, split into subtitle chunks (1-7s, ~80 chars) | `scripts/transcribe.sh align` |
+| **Render** | Write `edit.srt` and `{name}_chunks.json` | `scripts/transcribe.sh render` |
 
 ---
 
-## Install (one-time)
+## Setup (one-time)
 
-### Linux
-```bash
-./install.sh
-```
+This repo contains no Python environment. It wraps an existing faster-whisper install
+(stt-transcribe) via `scripts/transcribe.sh`.
 
-### Windows
-```batch
-install.bat
-```
-
-Both installers run `uv sync` to create a `.venv` with all dependencies:
-- Python 3.10+
-- PyTorch 2.5.1 with CUDA 12.4
-- faster-whisper (CTranslate2-based, NOT raw PyTorch Whisper)
-- All Python dependencies via `uv`
-
-### Quick CLI (without OpenCode)
+1. Install stt-transcribe (uv-based) somewhere, e.g. `/mnt/data/Liberary/ai/stt-transcribe`.
+2. Link it into this repo:
 
 ```bash
-# Linux
-./start-uv.sh
+ln -s /path/to/stt-transcribe scripts/stt-transcribe
+```
 
-# Windows
-start-uv.bat
+Or point at it with an env var:
 
-# Or run stages manually
-uv run python scripts/run_stage.py ingest
-uv run python scripts/run_stage.py transcribe
-uv run python scripts/run_stage.py align
-uv run python scripts/run_stage.py render
+```bash
+export STT_HOME=/path/to/stt-transcribe
+```
+
+3. Ensure `scripts/stt-transcribe/.env` exists (CUDA libs, HF cache, offline mode).
+   The wrapper sources it automatically.
+
+### Run stages (without OpenCode)
+
+```bash
+scripts/transcribe.sh ingest
+scripts/transcribe.sh transcribe
+scripts/transcribe.sh align
+scripts/transcribe.sh render
 ```
 
 ---
@@ -153,7 +149,7 @@ Edit `scripts/config.py`:
 | **GPU** | NVIDIA with CUDA support |
 | **VRAM** | 6GB+ recommended (int8 mode uses ~1GB) |
 | **Driver** | NVIDIA driver 525+ |
-| **Runtime** | Python 3.10+ via [uv](https://docs.astral.sh/uv/) |
+| **Runtime** | Python via linked stt-transcribe (.venv) |
 
 ---
 
@@ -172,6 +168,8 @@ Edit `scripts/config.py`:
 ├── input/                       # Place audio/video here
 ├── output/subtitles/            # Generated SRT + JSON
 ├── scripts/
+│   ├── transcribe.sh            # Wrapper around linked stt-transcribe
+│   ├── stt-transcribe           # Symlink to faster-whisper install (gitignored)
 │   ├── run_stage.py             # CLI entry point
 │   ├── config.py                # All settings
 │   ├── stage_ingest.py          # Media discovery + shotlist
@@ -195,7 +193,7 @@ COMPUTE_TYPE = "int8"    # Use int8 mode (~1GB VRAM)
 ```
 
 ### "No module named 'faster_whisper'"
-Run `install.bat` again to recreate the environment.
+Re-link `scripts/stt-transcribe` and verify its `.venv`.
 
 ### "NVIDIA GPU not detected"
 - Install latest NVIDIA drivers (525+)

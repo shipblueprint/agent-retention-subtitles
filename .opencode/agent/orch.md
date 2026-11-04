@@ -22,7 +22,7 @@ Pipeline definition: `.opencode/pipelines/whisper-tools/OPENCODE.md`
 Resolve audio file and load shotlist CSV (scene boundaries).
 
 ```bash
-uv run python scripts/run_stage.py ingest
+scripts/transcribe.sh ingest
 ```
 
 Inspect output: `data.audio_path`, `data.scene_count`, `data.total_duration`
@@ -31,7 +31,7 @@ Inspect output: `data.audio_path`, `data.scene_count`, `data.total_duration`
 Run faster-whisper on the audio with word-level timestamps.
 
 ```bash
-uv run python scripts/run_stage.py transcribe [--language en]
+scripts/transcribe.sh transcribe [--language en]
 ```
 
 Inspect output: `data.word_count`, `data.language`, `data.confidence`
@@ -41,7 +41,7 @@ Inspect output: `data.word_count`, `data.language`, `data.confidence`
 Map transcribed words to shotlist scenes and split long scenes into subtitle chunks (1-7s, ~80 chars).
 
 ```bash
-uv run python scripts/run_stage.py align
+scripts/transcribe.sh align
 ```
 
 Inspect output: `data.chunks_per_scene`, `data.empty_scenes`, `data.avg_chunk_duration`
@@ -51,7 +51,7 @@ Inspect output: `data.chunks_per_scene`, `data.empty_scenes`, `data.avg_chunk_du
 Write `edit.srt` and `{name}_chunks.json` to `output/subtitles/`.
 
 ```bash
-uv run python scripts/run_stage.py render
+scripts/transcribe.sh render
 ```
 
 Inspect output: `data.srt_path`, `data.json_path`, `data.total_chunks`, `data.stats`

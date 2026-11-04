@@ -2,7 +2,7 @@
 CLI entry point for each pipeline stage.
 
 OpenCode calls:
-    uv run python scripts/run_stage.py <stage> [--option value]
+    scripts/transcribe.sh <stage> [--option value]
 
 Stages (run in order):
     ingest      → resolve audio + load shotlist.csv → state
