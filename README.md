@@ -20,7 +20,7 @@ Built for [OpenCode](https://opencode.ai) — use via the orchestrator agent or 
 ## Quick Start
 
 ```bash
-cd /path/to/Whisper-Tools
+cd /path/to/Retention-Subtitles
 opencode
 ```
 

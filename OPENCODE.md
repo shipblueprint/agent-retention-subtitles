@@ -1,4 +1,4 @@
-# Whisper-Tools Pipeline
+# Retention Subtitles Pipeline
 
 Automatic transcription and SRT subtitle generation using **faster-whisper** with shotlist-aligned scene chunking.
 
@@ -7,7 +7,7 @@ Automatic transcription and SRT subtitle generation using **faster-whisper** wit
 ## Quick Start
 
 ```bash
-cd /path/to/Whisper-Tools
+cd /path/to/Retention-Subtitles
 opencode
 ```
 

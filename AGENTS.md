@@ -1,4 +1,4 @@
-# Whisper-Tools — Agent Definitions
+# Retention Subtitles — Agent Definitions
 
 Multi-IDE agent definitions for Cline, Roo, Claude Code, OpenCode, Pi, and compatible agents.
 
@@ -6,7 +6,7 @@ Multi-IDE agent definitions for Cline, Roo, Claude Code, OpenCode, Pi, and compa
 
 ## Agents
 
-### @orch — Whisper-Tools Orchestrator (default)
+### @orch — Retention Subtitles Orchestrator (default)
 
 The central orchestrator. Routes transcription requests through the 4-stage pipeline: Ingest → Transcribe → Align → Render.
 
