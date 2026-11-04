@@ -33,3 +33,8 @@ conda/
 # OS
 .DS_Store
 Thumbs.db
+
+# Agent tooling caches
+.codegraph/
+.omo/
+.headroom/
