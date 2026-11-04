@@ -1,6 +1,15 @@
-# Whisper-Tools
+# Retention Subtitles
 
-**Automatic transcription and SRT subtitle generation** using faster-whisper. Transcribes audio/video and produces retention-optimized subtitles with shotlist-aligned scene chunking.
+**Scene-aware subtitle generation for retention-optimized videos.**
+
+Plain transcription (Whisper, etc.) gives a flat SRT: lines can be too long, too short, or cross scene cuts. This repo takes the video pipeline's `shotlist.csv` (scene boundaries + types) plus the generated TTS audio and produces subtitles that:
+
+- stay **inside scene boundaries** (no subtitle spans a cut),
+- split long scenes into **readable chunks** (1–7s, ~84 chars),
+- prefer **natural break points** (sentence, clause, silence, bridge words),
+- output **SRT for editors** and **JSON with scene metadata** for downstream tools.
+
+It is not a general transcription tool. Use it when you already have a shotlist and a voiceover and need subtitles that respect scene timing and readability.
 
 Built for [OpenCode](https://opencode.ai) — use via the orchestrator agent or run the pipeline stages directly.
 
