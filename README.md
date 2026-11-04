@@ -169,9 +169,6 @@ Edit `scripts/config.py`:
 │   │       └── OPENCODE.md      # Pipeline stage definition
 │   └── skills/
 │       └── whisper-pipeline/    # Pipeline orchestration skill
-├── .pi/
-│   ├── prompts/                 # Pi agent prompts
-│   └── settings.json            # Pi configuration
 ├── input/                       # Place audio/video here
 ├── output/subtitles/            # Generated SRT + JSON
 ├── scripts/
